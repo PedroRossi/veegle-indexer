@@ -45,7 +45,7 @@ def compressIndex(self, parsed):
         inv_indx[word] = interval
     return inv_indx
 
-def transformJason(self, name):
+def transformJason(self, name, inv_indx):
     file = name+'.txt';
     with  open(file, 'w') as outfile:  
         json.dump(inv_indx, outfile)
