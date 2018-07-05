@@ -1,51 +1,59 @@
-import json
-from  collections import defaultdict
 from collections import Counter
-import nltk
-import os
-import time
+from string import punctuation
 import pandas as pd
 import numpy as np
+import json
+import nltk
 
-stemmer = nltk.stem.RSLPStemmer()
+class Indexer:
 
-def index(parsed):
-    inv_indx = defaultdict(list)
-    i = 0
-    for idx in parsed:
-        text = idx.split()
-        freq = Counter(text)
-        for word in freq:
-            inv_indx[word].append((freq[word], i))
-        i += 1
+    def __init__(self, parsed):
+        self.stemmer = nltk.stem.RSLPStemmer()
+        self.parsed = parsed
         
-    for word in inv_indx:
-        inv_indx[word].sort(reverse=True)
-    return inv_indx
+    def get_index(self, attr, stopwords_enabled = True, stemming_enabled = True):
+        inverted_index = {}
+        i = 0
+        dictionary = list(punctuation)
+        if stopwords_enabled:
+            dictionary += list(nltk.corpus.stopwords.words('portuguese'))
+        for idx in self.parsed:
+            idx = idx.lower()
+            idx = ''.join([i for i in idx if not i.isdigit() and i not in list(punctuation)])
+            text = idx.split()
+            if stemming_enabled:
+                text = [attr+'.'+self.stemmer.stem(t) for t in text if t not in dictionary]
+            else:
+                text = [attr+'.'+t for t in text if t not in dictionary]
+            freq = Counter(text)
+            for word in freq:
+                if word not in inverted_index:
+                    inverted_index[word] = []
+                inverted_index[word].append((freq[word], i))
+            i += 1
+        for word in inverted_index:
+            inverted_index[word].sort(reverse=True)
+        return inverted_index
 
-def compressIndex(parsed):
-    inv_indx = defaultdict(list)
-    i = 0
-    for idx in parsed:
-        text = idx.split()
-        freq = Counter(text)
-        for word in freq:
-            inv_indx[word].append((i, freq[word]))
-        i += 1
+    # review this
+    def compress_index(self):
+        inverted_index = {}
+        i = 0
         
-    for word in inv_indx:
-        inv_indx[word].sort(reverse=False)
-        interval = []
-        prev = 0
-        acc = 0
-        for x in inv_indx[word]:
-            acc = x[0] - prev
-            prev = x[0]
-            interval.append((acc, x[1]))
-        inv_indx[word] = interval
-    return inv_indx
-
-def transformJson(self, name, inv_indx):
-    file = name+'.txt';
-    with  open(file, 'w') as outfile:  
-        json.dump(inv_indx, outfile)
+        for idx in self.parsed:
+            text = idx.split()
+            freq = Counter(text)
+            for word in freq:
+                inverted_index[word].append((i, freq[word]))
+            i += 1
+        for word in inverted_index:
+            inverted_index[word].sort(reverse=False)
+            interval = []
+            prev = 0
+            acc = 0
+            for x in inverted_index[word]:
+                acc = x[0] - prev
+                prev = x[0]
+                interval.append((acc, x[1]))
+            inverted_index[word] = interval
+        return inverted_index
