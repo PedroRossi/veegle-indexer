@@ -9,7 +9,7 @@ import numpy as np
 
 stemmer = nltk.stem.RSLPStemmer()
 
-def index(self, parsed):
+def index(parsed):
     inv_indx = defaultdict(list)
     i = 0
     for idx in parsed:
@@ -23,7 +23,7 @@ def index(self, parsed):
         inv_indx[word].sort(reverse=True)
     return inv_indx
 
-def compressIndex(self, parsed):
+def compressIndex(parsed):
     inv_indx = defaultdict(list)
     i = 0
     for idx in parsed:
@@ -45,7 +45,7 @@ def compressIndex(self, parsed):
         inv_indx[word] = interval
     return inv_indx
 
-def transformJason(self, name, inv_indx):
+def transformJson(self, name, inv_indx):
     file = name+'.txt';
     with  open(file, 'w') as outfile:  
         json.dump(inv_indx, outfile)
