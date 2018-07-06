@@ -11,7 +11,7 @@ class Indexer:
         self.stemmer = nltk.stem.RSLPStemmer()
         self.parsed = parsed
         
-    def get_index(self, attr, stopwords_enabled = True, stemming_enabled = True):
+    def get_index(self, attr = None, stopwords_enabled = True, stemming_enabled = True):
         inverted_index = {}
         i = 0
         dictionary = list(punctuation)
@@ -22,17 +22,15 @@ class Indexer:
             idx = ''.join([i for i in idx if not i.isdigit() and i not in list(punctuation)])
             text = idx.split()
             if stemming_enabled:
-                text = [attr+'.'+self.stemmer.stem(t) for t in text if t not in dictionary]
+                text = [((attr+'.') if attr else '')+self.stemmer.stem(t) for t in text if t not in dictionary]
             else:
-                text = [attr+'.'+t for t in text if t not in dictionary]
+                text = [((attr+'.') if attr else '')+t for t in text if t not in dictionary]
             freq = Counter(text)
             for word in freq:
                 if word not in inverted_index:
-                    inverted_index[word] = []
-                inverted_index[word].append((freq[word], i))
+                    inverted_index[word] = {}
+                inverted_index[word][i] = freq[word]
             i += 1
-        for word in inverted_index:
-            inverted_index[word].sort(reverse=True)
         return inverted_index
 
     # review this
